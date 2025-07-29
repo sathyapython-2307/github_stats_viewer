@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3>Your GitHub Repositories</h3>
+                <small class="text-muted">Last updated: {{ current_user.last_updated.strftime('%Y-%m-%d %H:%M') }}</small>
+            </div>
+            <div class="card-body">
+                {% if rate_limit %}
+                <div class="alert alert-warning">
+                    <strong>GitHub API rate limit exceeded:</strong> Some data may not be available. 
+                    Try again later or <a href="https://docs.github.com/en/rest/overview/resources-in-the-rest-api#rate-limiting" target="_blank">learn more</a>.
+                </div>
+                {% endif %}
+                
+                {% if error %}
+                <div class="alert alert-danger">
+                    <strong>Error:</strong> Could not fetch repository data from GitHub.
+                </div>
+                {% endif %}
+                
+                {% if repos %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Repository</th>
+                                <th>Description</th>
+                                <th>Stars</th>
+                                <th>Forks</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for repo in repos %}
+                            <tr>
+                                <td>
+                                    <a href="{{ repo.html_url }}" target="_blank">{{ repo.name }}</a>
+                                </td>
+                                <td>{{ repo.description or '-' }}</td>
+                                <td>{{ repo.stars }}</td>
+                                <td>{{ repo.forks }}</td>
+                                <td>
+                                    <a href="{{ url_for('repo_detail', owner=username, repo=repo.name) }}" class="btn btn-sm btn-info">
+                                        View Stats
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info">No repositories found.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

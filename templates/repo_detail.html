@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <div class="card">
+            <div class="card-header">
+                <h3>{{ owner }}/{{ repo }}</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5>Commit Activity (Last Year)</h5>
+                            </div>
+                            <div class="card-body">
+                                {% if commits_data %}
+                                <canvas id="commitsChart" height="200"></canvas>
+                                {% else %}
+                                <div class="alert alert-warning">No commit data available</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5>Language Breakdown</h5>
+                            </div>
+                            <div class="card-body">
+                                {% if languages_data %}
+                                <canvas id="languagesChart" height="200"></canvas>
+                                {% else %}
+                                <div class="alert alert-warning">No language data available</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between">
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+                    <a href="https://github.com/{{ owner }}/{{ repo }}" target="_blank" class="btn btn-primary">
+                        View on GitHub
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    {% if commits_data %}
+    // Commit activity chart
+    const commitsCtx = document.getElementById('commitsChart').getContext('2d');
+    const commitsChart = new Chart(commitsCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ commits_data|map(attribute='week')|list|tojson }},
+            datasets: [{
+                label: 'Commits per week',
+                data: {{ commits_data|map(attribute='commits')|list|tojson }},
+                backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Number of Commits'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Week'
+                    }
+                }
+            }
+        }
+    });
+    {% endif %}
+    
+    {% if languages_data %}
+    // Languages chart
+    const languagesCtx = document.getElementById('languagesChart').getContext('2d');
+    const languagesChart = new Chart(languagesCtx, {
+        type: 'doughnut',
+        data: {
+            labels: {{ languages_data|map(attribute='language')|list|tojson }},
+            datasets: [{
+                data: {{ languages_data|map(attribute='percentage')|list|tojson }},
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.7)',
+                    'rgba(54, 162, 235, 0.7)',
+                    'rgba(255, 206, 86, 0.7)',
+                    'rgba(75, 192, 192, 0.7)',
+                    'rgba(153, 102, 255, 0.7)',
+                    'rgba(255, 159, 64, 0.7)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'right',
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.label + ': ' + context.raw.toFixed(2) + '%';
+                        }
+                    }
+                }
+            }
+        }
+    });
+    {% endif %}
+</script>
+{% endblock %}
