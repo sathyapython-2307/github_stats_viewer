@@ -4,3 +4,4 @@ flask-login
 flask-caching
 python-dotenv
 requests
+gunicorn
